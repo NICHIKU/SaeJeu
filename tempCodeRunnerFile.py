@@ -1,1 +1,0 @@
-plateau[indice_ligne][indice_colonne] = moi
