@@ -2,6 +2,7 @@ from __future__ import annotations
 import pygame as pg 
 import sys
 from Joueur import Joueur
+from Ennemie import Ennemie
 from Arme import Arme 
 from Boolean import Boolean
 from Entier import Entier
@@ -18,7 +19,15 @@ def clic_Joueur(ListeJoueur : list[Joueur],x:int,y:int):
                     print("mauvais tour")
                     selection_en_cours.setBool(False)
                     clic_actif.setBool(False)
-           
+                else:
+                    for j in range(1,3):
+                        print("j : ",j)
+                        if isinstance(plateau[ListeJoueur[i].getX()+j][ListeJoueur[i].getY()+j],Joueur) ==False:
+                            print("pas de joueur")
+                            pg.draw.rect(screen, (0,0,255), ((ListeJoueur[i].getY()+j) * Taille_case, (ListeJoueur[i].getX()+j) * Taille_case, Taille_case, Taille_case))
+                            pg.display.update()
+                            
+                            
 def deplacement_possible(x,y,indice_ligne,indice_colonne,plateau) -> bool:
     result = False
     
@@ -126,6 +135,8 @@ if __name__ == "__main__":
     ListeJoueur.append(j1)
     ListeJoueur.append(j2)
     
+    ListeEnnemi : list[Ennemie] = []
+    
     plateau = [[None] * nb_col for _ in range(nb_lig)]    
     plateau[j1.getX()][j1.getY()] = j1
     plateau[j2.getX()][j2.getY()] = j2
@@ -150,58 +161,24 @@ if __name__ == "__main__":
                 screen.fill(screen_color)
                 #affichage du texte jouer en majuscule en noir et en font 50 sur le centre haut de la fenêtre
                 Jouer : Texte = Texte("Jouer",None,50,(0,0,0),True,True,screen_width,screen_height,screen) 
-                #affichage du texte quitter en majuscule en noir et en font 50 sur le centre bas de la fenêtre
-                Param : Texte = Texte("Parametres",None,50,(0,0,0),True,False,1.75,None,None,screen_width,screen_height,screen) 
+
                 
                 x, y = pg.mouse.get_pos()
                 
                 if Jouer.getRect().collidepoint(x,y) == True:
                             #le texte jouer devient rouge
                             Jouer.setColor((255,0,0),screen)
-                if Param.getRect().collidepoint(x,y) == True:
-                            #le texte quitter devient rouge
-                            Param.setColor((255,0,0),screen)
                 
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         x, y = pg.mouse.get_pos()
-                        if x > 200 and x < 400 and y > 200 and y < 250:
+                        if Jouer.getRect().collidepoint(x,y) == True:
                             menu.setBool(False)
                             jeu.setBool(True)
-                        elif x > 200 and x < 400 and y > 300 and y < 350:
-                            menu.setBool(False)
-                            param.setBool(True)
-            
-            
+                      
             pg.display.update()
 
 
-        while param.getBool()==True:
-            for event in pg.event.get():
-                if event.type == pg.QUIT:
-                    pg.quit()
-                    sys.exit()
-            
-                screen.fill(screen_color)
-                #affichage du texte jouer en majuscule en noir et en font 50 sur le centre haut de la fenêtre
-                creaTexte("nbJoueur",None,50,(0,0,0),True,True)
-                #affichage du texte quitter en majuscule en noir et en font 50 sur le centre bas de la fenêtre
-                creaTexte("Retour",None,50,(0,0,0),True,False,1.5)
-                
-                x, y = pg.mouse.get_pos()
-                if x > 200 and x < 400 and y > 300 and y < 350:
-                            creaTexte("Retour",None,50,(255,0,0),True,False,1.5)
-                
-                if event.type == pg.MOUSEBUTTONDOWN:
-                    if event.button == 1:
-                        x, y = pg.mouse.get_pos()
-                        if x > 200 and x < 400 and y > 300 and y < 350:
-                            param.setBool(False)
-                            menu.setBool(True)
-            
-            
-            pg.display.update()
-        
 
         while jeu.getBool()==True:
             for event in pg.event.get():
@@ -213,7 +190,6 @@ if __name__ == "__main__":
             
             for ligne in range(nb_lig):
                 for colonne in range(nb_col):
-                
                     pg.draw.rect(screen, couleur_gril, (colonne * Taille_case, ligne * Taille_case, Taille_case, Taille_case), 1)
                     for i in range(len(ListeJoueur)):
                         if plateau[ligne][colonne] == ListeJoueur[i]:
