@@ -113,8 +113,6 @@ if __name__ == "__main__":
     decalj2_g = 8
     decalj2_h = 10
 
-   
-
     screen_color = (100,100,100)
     screen_width = nb_col*Taille_case
     screen_height = nb_lig*Taille_case
@@ -153,7 +151,7 @@ if __name__ == "__main__":
                 #affichage du texte jouer en majuscule en noir et en font 50 sur le centre haut de la fenêtre
                 Jouer : Texte = Texte("Jouer",None,50,(0,0,0),True,True,screen_width,screen_height,screen) 
                 #affichage du texte quitter en majuscule en noir et en font 50 sur le centre bas de la fenêtre
-                Param : Texte = Texte("Parametres",None,50,(0,0,0),True,None,screen_width,screen_height,screen) 
+                Param : Texte = Texte("Parametres",None,50,(0,0,0),True,False,1.75,None,None,screen_width,screen_height,screen) 
                 
                 x, y = pg.mouse.get_pos()
                 

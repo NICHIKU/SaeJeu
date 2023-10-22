@@ -3,7 +3,7 @@ import pygame as pg
 
 class Texte:
     #constructor
-    def __init__(self: Texte,texte : str,font : str, taille : int, couleur : tuple,center : bool,First : bool,y_rect : float = 0.5,x : int = None,y : int = None, screen_width : int = 800, screen_height : int = 600, screen: pg.display = pg.display.set_mode((800,600))):
+    def __init__(self: Texte,texte : str,font : str, taille : int, couleur : tuple,center : bool,First : bool,y_rect : float = 0.5,x_rect :float = 2.5,x : int = None,y : int = None, screen_width : int = 800, screen_height : int = 600, screen: pg.display = pg.display.set_mode((800,600))):
         #attribut d'instance 
         self.couleur : tuple = couleur
         self.taille : int = taille
