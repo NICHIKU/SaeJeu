@@ -109,11 +109,6 @@ def deplacement(ListeJoueur : list[Joueur],x:int,y:int,verif:Joueur):
             tour.setInt(tour.getInt()+1)
             print("tour : ",tour.getInt())
 
-def getObjet(x,y):
-    if plateau[x][y] == None:
-        return None
-    else:
-        return plateau[x][y]
 
 def verif_Joueur(x,y) -> bool:
     if isinstance(plateau[x][y],Joueur):
@@ -129,31 +124,33 @@ def getEnnemi(x,y)-> Ennemie:
 
             
 def attaquerEnnemi(ListeEnnemi : list[Ennemie],x : int,y : int,j_temp : Joueur):
+    #Récupère la liste des ennemis présents sur le plateau
     num_ennemi = len(ListeEnnemi)
     for j in range(num_ennemi):
         if plateau[x][y] == ListeEnnemi[j]:
+            #Récupère l'ennemi touché et lui retire des points de vie en fonction des dégats de l'arme du joueur
             ListeEnnemi[j].setVitalité(ListeEnnemi[j].getVitalité()-j_temp.getArme().getDPS())
             attack_sound.play(-1)
             print("vie de l'ennemi : ",ListeEnnemi[j].getVitalité())
             if ListeEnnemi[j].getVitalité() <= 0:
-                
-          
+                #Si l'ennemi n'a plus de vie, il est retiré de la liste et du plateau
                 plateau[x][y] = None
                 ListeEnnemi.pop(j)
                 print("ennemi mort")
                 if len(ListeEnnemi) == 0:
                     if cpt_ennemi.getInt() == 0:
+                        #Si il n'y a plus d'ennemi, on passe au niveau suivant
                         round_sound.play(-1)
                         cpt_ennemi.setInt(cpt_ennemi.getInt()+1)
-                        e4 : Ennemie = Ennemie("e4",Epee_Enemmie,2,7)
-                        e5 : Ennemie = Ennemie("e5",Epee_Enemmie,3,7)
-                        e6 : Ennemie = Ennemie("e6",Epee_Enemmie,4,7)
-                        e7 : Ennemie = Ennemie("e7",Epee_Enemmie,5,7)
+                        e4 : Ennemie = Ennemie("e4",Epee_Enemmie,2,6)
+                        e5 : Ennemie = Ennemie("e5",Epee_Enemmie,3,6)
+                        e6 : Ennemie = Ennemie("e6",Epee_Enemmie,4,6)
+                        e7 : Ennemie = Ennemie("e7",Epee_Enemmie,5,6)
                         e4.setImage("Images/hollow_soldier.png")
                         e5.setImage("Images/hollow_soldier.png")
                         e6.setImage("Images/hollow_soldier.png")
                         e7.setImage("Images/hollow_soldier.png")
-                        b : Ennemie = Ennemie("boss",Massue,6,8)
+                        b : Ennemie = Ennemie("boss",Massue,3,7)
                         b.setImage("Images/boss.png")
                         b.setVitalité(200)
                         ListeEnnemi.append(b)
@@ -177,38 +174,46 @@ def attaquerEnnemi(ListeEnnemi : list[Ennemie],x : int,y : int,j_temp : Joueur):
     
 if __name__ == "__main__":
     pg.init()
-    # Création de la fenêtre
+    # Nb de fois où tout les ennemis sont morts
     cpt_ennemi : Entier = Entier(0)
+    
+    # Paramètres du jeu
     nb_lig = 8
     nb_col = 12
     Taille_case = 64
     couleur_gril=(133,192,0)
     
+    #variables pour le décalage des images
     decalj2_g = 8
     decalj2_h = 10
 
+    #taill et couleur de la fenêtre
     screen_color = (100,100,100)
     screen_width = nb_col*Taille_case
     screen_height = nb_lig*Taille_case
 
+    #Création des armes
     Epee : Arme = Arme(30,"Epée")
     Epee_Enemmie : Arme = Arme(10,"Epée Enemmie")
     Massue : Arme = Arme(50,"Massue")
     
+    #Création des joueurs
     j1 : Joueur =Joueur('j1',Epee,1,2)
     j2 : Joueur =Joueur("j2",Epee,2,2)
     j2.setImage("Images/Solaire.png")
     
+    #instanciation de la liste et ajout des joueurs
     ListeJoueur : list[Joueur] = []
     ListeJoueur.append(j1)
     ListeJoueur.append(j2)
     
+    #Création des ennemis
     e0 : Ennemie = Ennemie("e0",Epee_Enemmie,4,5)
     e1 : Ennemie = Ennemie("e1",Epee_Enemmie,5,5)
     e2 : Ennemie = Ennemie("e2",Epee_Enemmie,6,5)
     e3 : Ennemie = Ennemie("e3",Epee_Enemmie,7,5)
     
-    
+    #instanciation de la liste et ajout des ennemis
     ListeEnnemi : list[Ennemie] = []
     
     ListeEnnemi.append(e0)
@@ -217,7 +222,7 @@ if __name__ == "__main__":
     ListeEnnemi.append(e3)
     
     
-    
+    #Instanciation des effets sonores
     attack_sound = pg.mixer.Sound("Sons/joueur_attack.wav")
     attack_zombie_sound = pg.mixer.Sound("Sons/ennemie_attack.wav")
     zombie_sound = pg.mixer.Sound("Sons/zombie_death.wav")
@@ -226,7 +231,7 @@ if __name__ == "__main__":
     lose_sound = pg.mixer.Sound("Sons/player_lose.wav")
 
     
-    
+    #Création du plateau et ajout des joueurs et ennemis automatiquement en fonction de leurs coordonnées
     plateau = [[None] * nb_col for _ in range(nb_lig)]    
     for i in range(len(ListeJoueur)):
         plateau[ListeJoueur[i].getX()][ListeJoueur[i].getY()] = ListeJoueur[i]
@@ -236,15 +241,23 @@ if __name__ == "__main__":
     screen = pg.display.set_mode((screen_width, screen_height))
     pg.display.set_caption("Dark info")
 
+    #variables pour les clics
     clic_actif:Boolean = Boolean(False) 
     selection_en_cours : Boolean = Boolean(False)
+    
+    #variable pour le tour (voir Entier.py)
     tour:Entier = Entier(2)
+
+    #variables pour les menus (voir Boolean.py)
     menu : Boolean = Boolean(True)
     jeu : Boolean = Boolean(False)
     Win : Boolean = Boolean(False)
     Lose : Boolean = Boolean(False)
-    param_actif : Boolean = Boolean(False)
+
+    #Boucle principale
     while True:
+        
+        #Création des menus et du son
         if menu.getBool() == True:
             menu_sound = pg.mixer.Sound("Sons/Menu.wav")
             menu_sound.play(-1)
@@ -254,18 +267,22 @@ if __name__ == "__main__":
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit()
-            
+
+                #affichage du menu en fond
                 screen.blit(pg.image.load("Images/Menu.png"), (0,0))
-                #affichage du texte jouer en majuscule en noir et en font 50 sur le centre haut de la fenêtre
+                
+                #Création du texte (voir Texte.py)
                 Jouer : Texte = Texte("Jouer",None,100,(250,250,250),True,True,screen_width,screen_height,screen) 
 
-                
+                #récupération de la position de la souris
                 x, y = pg.mouse.get_pos()
-                
+             
+                #si la souris est sur le texte jouer   
                 if Jouer.getRect().collidepoint(x,y) == True:
                             #le texte jouer devient rouge
                             Jouer.setColor((255,0,0),screen)
                 
+                #si on clique sur le texte jouer
                 if event.type == pg.MOUSEBUTTONDOWN:
                     if event.button == 1:
                         x, y = pg.mouse.get_pos()
@@ -284,6 +301,7 @@ if __name__ == "__main__":
             jeu_sound.play(-1)
 
 
+        #Boucle du jeu
         while jeu.getBool()==True:
             for event in pg.event.get():
                 if event.type == pg.QUIT:
@@ -296,6 +314,8 @@ if __name__ == "__main__":
             for ligne in range(nb_lig):
                 for colonne in range(nb_col):
                     pg.draw.rect(screen, couleur_gril, (colonne * Taille_case, ligne * Taille_case, Taille_case, Taille_case), 1)
+                    
+                    #Va chercher l'image des joueurs et ennemis dans la liste et les affichent à leur position respective
                     for i in range(len(ListeJoueur)):
                         if plateau[ligne][colonne] == ListeJoueur[i]:
                             screen.blit(pg.image.load(ListeJoueur[i].getImage()), (colonne * Taille_case-decalj2_g, ligne * Taille_case-decalj2_h ))
