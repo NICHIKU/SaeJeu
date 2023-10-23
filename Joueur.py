@@ -20,7 +20,7 @@ class Joueur:
         self.x : int = x
         self.y : int = y
         self.mouvement : bool = False
-        self.vitalité : int = 14
+        self.vitalité : int = 60
         self.endurance : int = 10
         self.dextérité : int = 11
         self.intelligence : int = 9

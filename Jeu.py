@@ -7,6 +7,8 @@ from Arme import Arme
 from Boolean import Boolean
 from Entier import Entier
 from Texte import Texte
+import random as rd
+
 
 def clic_Joueur(ListeJoueur : list[Joueur],x:int,y:int):
         print("clic sur le joueur")
@@ -15,26 +17,23 @@ def clic_Joueur(ListeJoueur : list[Joueur],x:int,y:int):
         for i in range(len(ListeJoueur)):
             if verif.gettype() == ListeJoueur[i].gettype():
                 print(ListeJoueur[i].getMouvement())
-                if tour.getInt()%2 == 0 or verif.getMouvement() == True:
+                if tour.getInt()%2 == 1 or verif.getMouvement() == True:
                     print("mauvais tour")
                     selection_en_cours.setBool(False)
                     clic_actif.setBool(False)
-                else:
-                    for j in range(1,3):
-                        print("j : ",j)
-                        if isinstance(plateau[ListeJoueur[i].getX()+j][ListeJoueur[i].getY()+j],Joueur) ==False:
-                            print("pas de joueur")
-                            pg.draw.rect(screen, (0,0,255), ((ListeJoueur[i].getY()+j) * Taille_case, (ListeJoueur[i].getX()+j) * Taille_case, Taille_case, Taille_case))
-                            pg.display.update()
+              
+                           
                             
                             
 def deplacement_possible(x,y,indice_ligne,indice_colonne,plateau) -> bool:
     result = False
     
     if isinstance(plateau[indice_ligne][indice_colonne],Joueur) == False :
-        print("pas de joueur")
         if (indice_ligne<x+3 and indice_ligne>x-3) and (indice_colonne<y+3 and indice_colonne>y-3):
-            print("Déplacement possible")
+            result= True
+    elif isinstance(plateau[indice_ligne][indice_colonne],Ennemie) == True:
+        if (indice_ligne<x+3 and indice_ligne>x-3) and (indice_colonne<y+3 and indice_colonne>y-3):
+            attaquerEnnemi(ListeJoueur,ListeEnnemi,indice_ligne,indice_colonne)
             result= True
     else:
         print("Déplacement impossible")
@@ -42,7 +41,50 @@ def deplacement_possible(x,y,indice_ligne,indice_colonne,plateau) -> bool:
     
     print("resultat : ",result)
     return result
-    
+
+
+def attaquerJoueur(ListeJoueur : list[Joueur],x : int,y : int,e1 : Ennemie):
+            for j in range(len(ListeJoueur)):
+                if plateau[x][y] == ListeJoueur[j]:
+                    ListeJoueur[j].setVitalité(ListeJoueur[j].getVitalité()-e1.getArme().getDPS())
+                    attack_zombie_sound.play(-1)
+                    print("vie du joueur : ",ListeJoueur[j].getVitalité())
+                    if ListeJoueur[j].getVitalité() <= 0:
+                        plateau[x][y] = None
+                        ListeJoueur.pop(j)
+                        plateau[x][y] = None
+                 
+                        death_sound.play(-1)
+                        if len(ListeJoueur) == 0:
+                            lose_sound.play(-1)
+                            print("fin de partie")
+                            jeu.setBool(False)
+                            Lose.setBool(True)
+                    else:
+                        print("joueur touché")
+                    break
+
+def deplacementEnnemi(ListeEnnemi : list[Ennemie]):
+    for i in range(len(ListeEnnemi)):
+        x_Temp = ListeEnnemi[i].getX()-rd.randint(1,2)
+        y_Temp = ListeEnnemi[i].getY()-rd.randint(1,2)
+        while x_Temp >7 or x_Temp <0 or y_Temp >11 or y_Temp <0:
+            x_Temp = ListeEnnemi[i].getX()+rd.randint(1,2)
+            y_Temp = ListeEnnemi[i].getY()+rd.randint(1,2)
+        if isinstance(plateau[x_Temp][y_Temp],Joueur) == False and isinstance(plateau[x_Temp][y_Temp],Ennemie) == False:
+            plateau[ListeEnnemi[i].getX()][ListeEnnemi[i].getY()] = None
+            plateau[x_Temp][y_Temp] = ListeEnnemi[i]
+            ListeEnnemi[i].setX(x_Temp)
+            ListeEnnemi[i].setY(y_Temp)
+        elif isinstance(plateau[x_Temp][y_Temp],Joueur) == True:
+            ennemie_temp = getEnnemi(ListeEnnemi[i].getX(),ListeEnnemi[i].getY())
+            attaquerJoueur(ListeJoueur,x_Temp,y_Temp,ennemie_temp)
+            print("joueur touché")
+        else:
+            print("Ennemi bloqué")
+    print("Ennemi déplacé")
+
+        
 
 
 def deplacement(ListeJoueur : list[Joueur],x:int,y:int,verif:Joueur):
@@ -61,10 +103,11 @@ def deplacement(ListeJoueur : list[Joueur],x:int,y:int,verif:Joueur):
             if ListeJoueur[i].getMouvement() == True:
                 nbdéplacement +=1
         
-        if nbdéplacement == (len(ListeJoueur)+1):
+        if nbdéplacement == (len(ListeJoueur)):
             for i in range (len(ListeJoueur)):
                 ListeJoueur[i].setMouvement(False)
             tour.setInt(tour.getInt()+1)
+            print("tour : ",tour.getInt())
 
 def getObjet(x,y):
     if plateau[x][y] == None:
@@ -81,39 +124,61 @@ def verif_Joueur(x,y) -> bool:
 def getJoueur(x,y)-> Joueur:
     return plateau[x][y]
 
-def creaJoueur(type : str,arme : Arme ,x: int,y : int):
-        type = input("type du joueur : ")
-        arme = input("Arme du joueur : ")
-        x = int(input("x : "))
-        y = int(input("y : "))
-        ListeJoueur.append(Joueur(type,arme,x,y))
+def getEnnemi(x,y)-> Ennemie:
+    return plateau[x][y]
 
-def creaTexte(texte : str,font : str, taille : int, couleur : tuple,center : bool,First : bool,y_rect : float = 2,x : int = None,y : int = None):
-    font = pg.font.Font(font, taille)
-    texte = font.render(texte, True, couleur)
-    if center == True:
-        texteRect = texte.get_rect()
-        if First == True:
-            texteRect.center = (screen_width // 2, screen_height // 2)
-        else : 
-            texteRect.center = (screen_width // 2, screen_height // y_rect)
-        screen.blit(texte, texteRect)
-    else:
-
-        if x>screen_width or x<0 or y<0 or y>screen_height:
-            while x>screen_width or x<0 or y<0 or y>screen_height:
-                print("erreur, veuillez réessayer")
-                x = int(input("x : "))
-                y = int(input("y : "))
-                screen.blit(texte, (x,y))
-        else:
-            screen.blit(texte, (x,y))
+            
+def attaquerEnnemi(ListeEnnemi : list[Ennemie],x : int,y : int,j_temp : Joueur):
+    num_ennemi = len(ListeEnnemi)
+    for j in range(num_ennemi):
+        if plateau[x][y] == ListeEnnemi[j]:
+            ListeEnnemi[j].setVitalité(ListeEnnemi[j].getVitalité()-j_temp.getArme().getDPS())
+            attack_sound.play(-1)
+            print("vie de l'ennemi : ",ListeEnnemi[j].getVitalité())
+            if ListeEnnemi[j].getVitalité() <= 0:
+                
+          
+                plateau[x][y] = None
+                ListeEnnemi.pop(j)
+                print("ennemi mort")
+                if len(ListeEnnemi) == 0:
+                    if cpt_ennemi.getInt() == 0:
+                        round_sound.play(-1)
+                        cpt_ennemi.setInt(cpt_ennemi.getInt()+1)
+                        e4 : Ennemie = Ennemie("e4",Epee_Enemmie,2,7)
+                        e5 : Ennemie = Ennemie("e5",Epee_Enemmie,3,7)
+                        e6 : Ennemie = Ennemie("e6",Epee_Enemmie,4,7)
+                        e7 : Ennemie = Ennemie("e7",Epee_Enemmie,5,7)
+                        e4.setImage("Images/hollow_soldier.png")
+                        e5.setImage("Images/hollow_soldier.png")
+                        e6.setImage("Images/hollow_soldier.png")
+                        e7.setImage("Images/hollow_soldier.png")
+                        b : Ennemie = Ennemie("boss",Massue,6,8)
+                        b.setImage("Images/boss.png")
+                        b.setVitalité(200)
+                        ListeEnnemi.append(b)
+                        ListeEnnemi.append(e4)
+                        ListeEnnemi.append(e5)
+                        ListeEnnemi.append(e6)
+                        ListeEnnemi.append(e7)
+                        pg.display.update()
+                    else:
+                        print("fin de partie")
+                        jeu.setBool(False)
+                        Win.setBool(True)
+                break
+                
+            else:
+                print("ennemi touché")
+            tour.setInt(tour.getInt()+1)
+                       
 
 
     
 if __name__ == "__main__":
     pg.init()
     # Création de la fenêtre
+    cpt_ennemi : Entier = Entier(0)
     nb_lig = 8
     nb_col = 12
     Taille_case = 64
@@ -127,6 +192,9 @@ if __name__ == "__main__":
     screen_height = nb_lig*Taille_case
 
     Epee : Arme = Arme(30,"Epée")
+    Epee_Enemmie : Arme = Arme(10,"Epée Enemmie")
+    Massue : Arme = Arme(50,"Massue")
+    
     j1 : Joueur =Joueur('j1',Epee,1,2)
     j2 : Joueur =Joueur("j2",Epee,2,2)
     j2.setImage("Images/Solaire.png")
@@ -135,32 +203,61 @@ if __name__ == "__main__":
     ListeJoueur.append(j1)
     ListeJoueur.append(j2)
     
+    e0 : Ennemie = Ennemie("e0",Epee_Enemmie,4,5)
+    e1 : Ennemie = Ennemie("e1",Epee_Enemmie,5,5)
+    e2 : Ennemie = Ennemie("e2",Epee_Enemmie,6,5)
+    e3 : Ennemie = Ennemie("e3",Epee_Enemmie,7,5)
+    
+    
     ListeEnnemi : list[Ennemie] = []
     
+    ListeEnnemi.append(e0)
+    ListeEnnemi.append(e1)
+    ListeEnnemi.append(e2)
+    ListeEnnemi.append(e3)
+    
+    
+    
+    attack_sound = pg.mixer.Sound("Sons/joueur_attack.wav")
+    attack_zombie_sound = pg.mixer.Sound("Sons/ennemie_attack.wav")
+    zombie_sound = pg.mixer.Sound("Sons/zombie_death.wav")
+    round_sound = pg.mixer.Sound("Sons/round2.wav")
+    death_sound = pg.mixer.Sound("Sons/player_death.wav")
+    lose_sound = pg.mixer.Sound("Sons/player_lose.wav")
+
+    
+    
     plateau = [[None] * nb_col for _ in range(nb_lig)]    
-    plateau[j1.getX()][j1.getY()] = j1
-    plateau[j2.getX()][j2.getY()] = j2
+    for i in range(len(ListeJoueur)):
+        plateau[ListeJoueur[i].getX()][ListeJoueur[i].getY()] = ListeJoueur[i]
+    for i in range(len(ListeEnnemi)):
+        plateau[ListeEnnemi[i].getX()][ListeEnnemi[i].getY()] = ListeEnnemi[i]    
 
     screen = pg.display.set_mode((screen_width, screen_height))
     pg.display.set_caption("Dark info")
 
     clic_actif:Boolean = Boolean(False) 
     selection_en_cours : Boolean = Boolean(False)
-    tour:Entier = Entier(1)
+    tour:Entier = Entier(2)
     menu : Boolean = Boolean(True)
     jeu : Boolean = Boolean(False)
-    param : Boolean = Boolean(False)
+    Win : Boolean = Boolean(False)
+    Lose : Boolean = Boolean(False)
     param_actif : Boolean = Boolean(False)
     while True:
+        if menu.getBool() == True:
+            menu_sound = pg.mixer.Sound("Sons/Menu.wav")
+            menu_sound.play(-1)
         while menu.getBool()==True:
+            
             for event in pg.event.get():
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit()
             
-                screen.fill(screen_color)
+                screen.blit(pg.image.load("Images/Menu.png"), (0,0))
                 #affichage du texte jouer en majuscule en noir et en font 50 sur le centre haut de la fenêtre
-                Jouer : Texte = Texte("Jouer",None,50,(0,0,0),True,True,screen_width,screen_height,screen) 
+                Jouer : Texte = Texte("Jouer",None,100,(250,250,250),True,True,screen_width,screen_height,screen) 
 
                 
                 x, y = pg.mouse.get_pos()
@@ -175,9 +272,16 @@ if __name__ == "__main__":
                         if Jouer.getRect().collidepoint(x,y) == True:
                             menu.setBool(False)
                             jeu.setBool(True)
+                            Jouer.setColor((100,100,100),screen)
+                            
                       
+                    
             pg.display.update()
 
+        if jeu.getBool() == True:
+            menu_sound.stop()
+            jeu_sound = pg.mixer.Sound("Sons/Background.wav")
+            jeu_sound.play(-1)
 
 
         while jeu.getBool()==True:
@@ -185,8 +289,9 @@ if __name__ == "__main__":
                 if event.type == pg.QUIT:
                     pg.quit()
                     sys.exit()
-            
-            screen.fill(screen_color)
+                    
+                screen.blit(pg.image.load("Images/Background.png"), (0,0))
+
             
             for ligne in range(nb_lig):
                 for colonne in range(nb_col):
@@ -194,8 +299,10 @@ if __name__ == "__main__":
                     for i in range(len(ListeJoueur)):
                         if plateau[ligne][colonne] == ListeJoueur[i]:
                             screen.blit(pg.image.load(ListeJoueur[i].getImage()), (colonne * Taille_case-decalj2_g, ligne * Taille_case-decalj2_h ))
+                    for i in range(len(ListeEnnemi)):
+                        if plateau[ligne][colonne] == ListeEnnemi[i]:
+                            screen.blit(pg.image.load(ListeEnnemi[i].getImage()), (colonne * Taille_case-decalj2_g, ligne * Taille_case-decalj2_h ))
                 
-            
             
             if event.type == pg.MOUSEBUTTONDOWN:
                 if event.button == 1:
@@ -215,11 +322,20 @@ if __name__ == "__main__":
                         else:
                             print ("selection en cours")
                             if deplacement_possible(verif.getX(), verif.getY(), indice_ligne, indice_colonne, plateau) == True:
-                                print("rangé")
-                                deplacement(ListeJoueur,indice_ligne,indice_colonne,verif)
-                            print("deplacement effectué")
+                                if isinstance(plateau[indice_ligne][indice_colonne],Ennemie) == True:
+                                    attaquerEnnemi(ListeEnnemi,indice_ligne,indice_colonne,verif)
+                                else:
+                                    deplacement(ListeJoueur,indice_ligne,indice_colonne,verif)
+                            
                             selection_en_cours.setBool(False)
                             clic_actif.setBool(True)   
+            
+        
+                
+            if tour.getInt()%2 == 1:
+                deplacementEnnemi(ListeEnnemi)
+                tour.setInt(tour.getInt()+1)
+                
         
                             
             if event.type == pg.MOUSEBUTTONUP:
@@ -227,3 +343,68 @@ if __name__ == "__main__":
                     clic_actif.setBool(False)
 
             pg.display.update()
+         
+
+        if Lose.getBool() == True:
+            jeu_sound.stop()
+            lose_sound = pg.mixer.Sound("Sons/Lose.wav")
+            lose_sound.play(-1)
+            
+        while Lose.getBool()==True:
+            for event in pg.event.get():
+                if event.type == pg.QUIT:
+                    pg.quit()
+                    sys.exit()
+            
+                screen.blit(pg.image.load("Images/Lose.png"), (0,0))
+                #affichage du texte jouer en majuscule en noir et en font 50 sur le centre haut de la fenêtre
+                retry : Texte = Texte("Quitter",None,100,(250,250,250),True,True,screen_width,screen_height,screen) 
+
+                
+                x, y = pg.mouse.get_pos()
+                
+                if retry.getRect().collidepoint(x,y) == True:
+                            #le texte jouer devient rouge
+                            retry.setColor((255,0,0),screen)
+                
+                if event.type == pg.MOUSEBUTTONDOWN:
+                    if event.button == 1:
+                        x, y = pg.mouse.get_pos()
+                        if retry.getRect().collidepoint(x,y) == True:
+                            sys.exit()
+                            
+                      
+                    
+            pg.display.update()
+        
+        if Win.getBool() == True:
+            jeu_sound.stop()
+            win_sound = pg.mixer.Sound("Sons/Win.wav")
+            win_sound.play(-1)
+    
+        while Win.getBool()==True:
+                for event in pg.event.get():
+                    if event.type == pg.QUIT:
+                        pg.quit()
+                        sys.exit()
+                
+                    screen.blit(pg.image.load("Images/Win.png"), (0,0))
+                    #affichage du texte jouer en majuscule en noir et en font 50 sur le centre haut de la fenêtre
+                    quit : Texte = Texte("Quitter",None,100,(250,250,250),True,True,screen_width,screen_height,screen) 
+
+                    
+                    x, y = pg.mouse.get_pos()
+                    
+                    if quit.getRect().collidepoint(x,y) == True:
+                                #le texte jouer devient rouge
+                                retry.setColor((0,0,255),screen)
+                    
+                    if event.type == pg.MOUSEBUTTONDOWN:
+                        if event.button == 1:
+                            x, y = pg.mouse.get_pos()
+                            if quit.getRect().collidepoint(x,y) == True:
+                                sys.exit()
+                                
+                        
+                        
+                pg.display.update()

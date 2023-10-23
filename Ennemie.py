@@ -19,7 +19,7 @@ class Ennemie:
         self.x : int = x
         self.y : int = y
         self.mouvement : bool = False
-        self.vitalité : int = 14
+        self.vitalité : int = 100
         self.endurance : int = 10
         self.image = "Images/hollow_sword.png"
         Ennemie.allEnnemies.append(self)

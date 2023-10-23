@@ -9,7 +9,7 @@ class Texte:
         self.taille : int = taille
         self.valeur : str = texte
         self.font = pg.font.Font(font, self.taille)
-        self.texte = self.font.render(self.valeur, True, self.couleur)
+        self.texte = self.font.render(self.valeur, False, self.couleur)
         self.center : bool = center
         self.First : bool = First
         self.y_rect : float = y_rect
@@ -37,6 +37,9 @@ class Texte:
                     self.screen.blit(self.texte, (self.x,self.y))
             else:
                 self.screen.blit(self.texte, (self.x,self.y))
+        
+        def __del__(self: Texte):
+            print(f'objet {self} supprimé')
         
     
     def __repr__(self: Texte) -> str:    
@@ -83,7 +86,13 @@ class Texte:
                 self.screen.blit(self.texte, texteRect)    
         else:
             self.screen.blit(self.texte, (self.x,self.y))
-    
+            
+    def delete (self : Texte):
+        self.font = pg.font.Font(None, self.taille)
+        self.couleur = (100,100,100)
+        self.taille = 0
+        self.valeur = ''
+        self.texte = self.font.render('', True, self.couleur)
         
     def setX (self : Texte, x : int):
         self.x = x
